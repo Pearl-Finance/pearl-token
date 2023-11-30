@@ -4,9 +4,6 @@ pragma solidity ^0.8.0;
 import {console} from "forge-std/Script.sol";
 
 import {IERC20} from "@openzeppelin/contracts/interfaces/IERC20.sol";
-import {Create2} from "@openzeppelin/contracts/utils/Create2.sol";
-import {ProxyAdmin} from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
-import {TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 
 import {PearlDeploymentScript} from "./PearlDeploymentScript.sol";
 

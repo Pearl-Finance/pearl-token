@@ -42,4 +42,4 @@ The Pearl Token Project is a Solidity-based smart contract suite designed for th
    ```
 
 ## License
-This project is licensed under MT. See the `LICENSE` file for more details.
+This project is licensed under MIT. See the `LICENSE` file for more details.
