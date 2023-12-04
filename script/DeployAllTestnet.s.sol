@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import {DeployAllBase} from "./base/DeployAllBase.sol";
 
-// FOUNDRY_PROFILE=optimized forge script ./script/DeployAllTestnet.s.sol --broadcast
+// FOUNDRY_PROFILE=optimized forge script ./script/DeployAllTestnet.s.sol --legacy --broadcast --verify
 contract DeployAllTestnet is DeployAllBase {
     function _getLegacyPearlAddress() internal pure override returns (address) {
         return 0x607Ed4f1296C800b3ABCb82Af24Ef382BdA1B181;

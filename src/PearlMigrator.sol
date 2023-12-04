@@ -37,7 +37,6 @@ contract PearlMigrator is NonblockingLzAppUpgradeable, UUPSUpgradeable {
 
     address public immutable legacyPearl;
     address public immutable legacyVEPearl;
-    address public immutable pearl;
 
     uint16 lzMainChainId;
 
@@ -75,15 +74,13 @@ contract PearlMigrator is NonblockingLzAppUpgradeable, UUPSUpgradeable {
      * @param _legacyVEPearl The address of the legacy VE Pearl contract from which tokens will be migrated.
      * @param _lzMainChainId The main chain ID in the LayerZero network, representing the primary network for the Pearl
      * token.
-     * @param _pearl The address of the new Pearl contract to which tokens will be migrated.
      * @custom:oz-upgrades-unsafe-allow constructor
      */
-    constructor(address lzEndpoint, address _legacyPearl, address _legacyVEPearl, uint16 _lzMainChainId, address _pearl)
+    constructor(address lzEndpoint, address _legacyPearl, address _legacyVEPearl, uint16 _lzMainChainId)
         NonblockingLzAppUpgradeable(lzEndpoint)
     {
         legacyPearl = _legacyPearl;
         legacyVEPearl = _legacyVEPearl;
-        pearl = _pearl;
         lzMainChainId = _lzMainChainId;
     }
 
@@ -141,7 +138,7 @@ contract PearlMigrator is NonblockingLzAppUpgradeable, UUPSUpgradeable {
      * @param zroPaymentAddress Address for zero token payment, if used.
      * @param adapterParams Custom adapter parameters for LayerZero message.
      */
-    function migrateVE(
+    function migrateVotingEscrow(
         uint256 tokenId,
         address to,
         address payable refundAddress,
@@ -149,7 +146,7 @@ contract PearlMigrator is NonblockingLzAppUpgradeable, UUPSUpgradeable {
         bytes calldata adapterParams
     ) external {
         IERC721(legacyVEPearl).transferFrom(msg.sender, address(this), tokenId);
-        _migrateVE(tokenId, msg.sender, to, refundAddress, zroPaymentAddress, adapterParams);
+        _migrateVotingEscrow(tokenId, msg.sender, to, refundAddress, zroPaymentAddress, adapterParams);
     }
 
     /**
@@ -189,7 +186,7 @@ contract PearlMigrator is NonblockingLzAppUpgradeable, UUPSUpgradeable {
      * @return nativeFee Estimated native token fee for migration.
      * @return zroFee Estimated ZRO token fee for migration, if ZRO is used.
      */
-    function estimateMigrateVEFee(
+    function estimateMigrateVotingEscrowFee(
         uint16 dstChainId,
         bytes calldata toAddress,
         uint256 lockedAmount,
@@ -197,7 +194,7 @@ contract PearlMigrator is NonblockingLzAppUpgradeable, UUPSUpgradeable {
         bool useZro,
         bytes calldata adapterParams
     ) public view returns (uint256 nativeFee, uint256 zroFee) {
-        // mock the payload for migrateVE()
+        // mock the payload for migrateVotingEscrow()
         bytes memory payload = abi.encode(PT_SEND_VE, toAddress, lockedAmount, vestingDuration);
         return lzEndpoint.estimateFees(dstChainId, address(this), payload, useZro, adapterParams);
     }
@@ -244,7 +241,7 @@ contract PearlMigrator is NonblockingLzAppUpgradeable, UUPSUpgradeable {
         emit Migrate(from, to, amount);
     }
 
-    function _migrateVE(
+    function _migrateVotingEscrow(
         uint256 tokenId,
         address from,
         address to,

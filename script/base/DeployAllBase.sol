@@ -75,7 +75,13 @@ abstract contract DeployAllBase is PearlDeploymentScript {
             if (keccak256(abi.encodePacked(deploymentChainAliases[i])) == keccak256(abi.encodePacked(mainChainAlias))) {
                 address pearlAddress = _deployPearl(premintAmount);
                 pearl = Pearl(pearlAddress);
-                pearl.setTrustedRemoteAddress(_getLzChainId(migrationChainAlias), abi.encodePacked(migratorAddress));
+                if (
+                    !pearl.isTrustedRemote(
+                        _getLzChainId(migrationChainAlias), abi.encodePacked(migratorAddress, pearlAddress)
+                    )
+                ) {
+                    pearl.setTrustedRemoteAddress(_getLzChainId(migrationChainAlias), abi.encodePacked(migratorAddress));
+                }
                 _deployVEPearl(pearlAddress);
             } else {
                 address pearlAddress = _deployPearl();
@@ -83,9 +89,15 @@ abstract contract DeployAllBase is PearlDeploymentScript {
             }
             for (uint256 j = 0; j < deploymentChainAliases.length; j++) {
                 if (i != j) {
-                    pearl.setTrustedRemoteAddress(
-                        _getLzChainId(deploymentChainAliases[j]), abi.encodePacked(address(pearl))
-                    );
+                    if (
+                        !pearl.isTrustedRemote(
+                            _getLzChainId(deploymentChainAliases[j]), abi.encodePacked(address(pearl), address(pearl))
+                        )
+                    ) {
+                        pearl.setTrustedRemoteAddress(
+                            _getLzChainId(deploymentChainAliases[j]), abi.encodePacked(address(pearl))
+                        );
+                    }
                 }
             }
             vm.stopBroadcast();
@@ -286,13 +298,12 @@ abstract contract DeployAllBase is PearlDeploymentScript {
         address legacyVEPearlAddress = _getLegacyVEPearlAddress();
         uint16 lzMainChainId = _getLzChainId(_getMainChainAlias());
 
-        (address pearlAddress,) = _computeProxyAddress("Pearl");
         address migratorAddress = vm.computeCreate2Address(
             _SALT,
             keccak256(
                 abi.encodePacked(
                     type(PearlMigrator).creationCode,
-                    abi.encode(lzEndpoint, legacyPearlAddress, legacyVEPearlAddress, lzMainChainId, pearlAddress)
+                    abi.encode(lzEndpoint, legacyPearlAddress, legacyVEPearlAddress, lzMainChainId)
                 )
             )
         );
@@ -304,7 +315,7 @@ abstract contract DeployAllBase is PearlDeploymentScript {
             migrator = PearlMigrator(migratorAddress);
         } else {
             migrator =
-            new PearlMigrator{salt: _SALT}(lzEndpoint, legacyPearlAddress, legacyVEPearlAddress, lzMainChainId, pearlAddress);
+            new PearlMigrator{salt: _SALT}(lzEndpoint, legacyPearlAddress, legacyVEPearlAddress, lzMainChainId);
             assert(migratorAddress == address(migrator));
             console.log("Pearl Migrator deployed to %s", migratorAddress);
         }

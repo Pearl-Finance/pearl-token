@@ -171,7 +171,8 @@ abstract contract DeploymentScriptBase is Script {
             ERC1967Proxy proxy = ERC1967Proxy(payable(proxyAddress));
             address _implementation = address(uint160(uint256(vm.load(address(proxy), PROXY_IMPLEMENTATION_SLOT))));
             if (_implementation != implementation) {
-                UUPSUpgradeable(address(proxy)).upgradeToAndCall(implementation, data);
+                //UUPSUpgradeable(address(proxy)).upgradeToAndCall(implementation, data);
+                UUPSUpgradeable(address(proxy)).upgradeToAndCall(implementation, "");
                 console.log("%s proxy at %s has been upgraded", forContract, proxyAddress);
             } else {
                 console.log("%s proxy at %s remains unchanged", forContract, proxyAddress);
