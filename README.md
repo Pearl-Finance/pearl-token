@@ -38,8 +38,44 @@ The Pearl Token Project is a Solidity-based smart contract suite designed for th
 4. Execute test scripts to validate contract functionalities.
 5. Run Foundry commands to deploy contracts. For example:
    ```
-   FOUNDRY_PROFILE=optimized forge script script/DeployAllTestnet.s.sol --broadcast
+   FOUNDRY_PROFILE=optimized forge script script/DeployAllTestnet.s.sol --legacy --broadcast
    ```
+6. Verify contracts. For example:
+   ```
+   FOUNDRY_PROFILE=optimized forge verify-contract 0xaBA5FF73Bec90ef637e3A75a205A7A084A651097 \
+     --chain-id 18231 \
+     --verifier blockscout \
+     --verifier-url "https://unreal.blockscout.com/api" \
+     --watch src/token/Pearl.sol:Pearl
+   FOUNDRY_PROFILE=optimized forge verify-contract 0xa15d9b6cCA037B0d3BA7f76d9C38c13D6485F025 \
+     --chain-id 5 \
+     --verifier etherscan \
+     --etherscan-api-key "<etherscan-key>" \
+     --constructor-args $(
+         cast abi-encode "constructor(uint256,address)" \
+         18231 0xbfD2135BFfbb0B5378b56643c2Df8a87552Bfa23
+       ) \
+     --watch src/token/Pearl.sol:Pearl
+   ```
+
+## Current Deployment Addresses
+
+### Mumbai
+```
+Pearl Migrator: 0x14cd7fACf3a215149377896FE58DaD019d72E002
+```
+
+### Unreal
+```
+Pearl:           0x1ef116600bBb2e99Ce6CE96B7E66A0df71AF5980
+vePearl:         0xee60171b3A81EE2DF0caf0aAd894772B6Acaa772
+vePearl Vesting: 0xA1Bc24d9043C364bF9BAc192ef9a46B8d8f24dCD
+```
+
+### Goerli
+```
+Pearl: 0x1ef116600bBb2e99Ce6CE96B7E66A0df71AF5980
+```
 
 ## License
 This project is licensed under MIT. See the `LICENSE` file for more details.
