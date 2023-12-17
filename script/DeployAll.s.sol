@@ -14,7 +14,11 @@ contract DeployAll is DeployAllBase {
     }
 
     function _getVoterAddress() internal pure override returns (address) {
-        revert("DeployAllTestnet: voter address not set");
+        revert("DeployAll: voter address not set");
+    }
+
+    function _getPearlMinterAddress() internal pure override returns (address) {
+        revert("DeployAll: minter address not set");
     }
 
     function _getMainChainAlias() internal pure override returns (string memory) {

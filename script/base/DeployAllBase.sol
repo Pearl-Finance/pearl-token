@@ -75,6 +75,10 @@ abstract contract DeployAllBase is PearlDeploymentScript {
             if (keccak256(abi.encodePacked(deploymentChainAliases[i])) == keccak256(abi.encodePacked(mainChainAlias))) {
                 address pearlAddress = _deployPearl(premintAmount);
                 pearl = Pearl(pearlAddress);
+                if (pearl.minter() != _getPearlMinterAddress()) {
+                    pearl.setMinter(_getPearlMinterAddress());
+                    console.log("Pearl minter set to %s", _getPearlMinterAddress());
+                }
                 if (
                     !pearl.isTrustedRemote(
                         _getLzChainId(migrationChainAlias), abi.encodePacked(migratorAddress, pearlAddress)
@@ -116,6 +120,8 @@ abstract contract DeployAllBase is PearlDeploymentScript {
     function _getLegacyPearlAddress() internal pure virtual returns (address);
 
     function _getLegacyVEPearlAddress() internal pure virtual returns (address);
+
+    function _getPearlMinterAddress() internal pure virtual returns (address);
 
     function _getVoterAddress() internal pure virtual returns (address);
 
@@ -244,10 +250,12 @@ abstract contract DeployAllBase is PearlDeploymentScript {
 
         if (vePearl.artProxy() != artProxyAddress) {
             vePearl.setArtProxy(artProxyAddress);
+            console.log("vePearl art proxy set to %s", artProxyAddress);
         }
 
         if (vePearl.voter() != voterAddress) {
             vePearl.setVoter(voterAddress);
+            console.log("vePearl voter set to %s", voterAddress);
         }
     }
 

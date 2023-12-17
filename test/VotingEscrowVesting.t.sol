@@ -180,4 +180,23 @@ contract VotingEscrowTest is Test {
         vm.expectRevert(abi.encodeWithSelector(VotingEscrowVesting.NotAuthorized.selector, alice));
         vesting.withdraw(address(this), tokenId);
     }
+
+    function test_kasumiga() public {
+        address kasumiga = 0xF3c003849D1C3E0067AFb5495B9e0aDaBCb57Ae7;
+        uint256 pearlAmount = 0x8ac7230489e80000;
+        uint256 lockDuration = 0x1dfe200;
+        pearl.mint(kasumiga, pearlAmount);
+
+        vm.startPrank(kasumiga);
+        pearl.approve(address(vePearl), pearlAmount);
+        vePearl.mint(kasumiga, pearlAmount, lockDuration);
+
+        vm.createSelectFork("https://rpc.unreal.gelato.digital");
+
+        VotingEscrow ve = VotingEscrow(0xee60171b3A81EE2DF0caf0aAd894772B6Acaa772);
+        //Pearl pearl = Pearl(0x1ef116600bBb2e99Ce6CE96B7E66A0df71AF5980);
+        vm.startPrank(kasumiga);
+        pearl.approve(address(ve), type(uint256).max);
+        ve.mint(kasumiga, pearlAmount, lockDuration);
+    }
 }

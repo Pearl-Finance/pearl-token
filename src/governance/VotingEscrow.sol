@@ -441,7 +441,7 @@ contract VotingEscrow is
             }
         }
         if (vestingDuration > MAX_VESTING_DURATION) {
-            revert InvalidVestingDuration(vestingDuration, remainingVestingDuration, MAX_VESTING_DURATION);
+            revert InvalidVestingDuration(vestingDuration, 0, MAX_VESTING_DURATION);
         }
         _updateLock(tokenId, $._lockedBalance[tokenId], vestingDuration);
     }
