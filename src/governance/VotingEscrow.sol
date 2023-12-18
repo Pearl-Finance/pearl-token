@@ -436,7 +436,7 @@ contract VotingEscrow is
         if (vestingDuration == remainingVestingDuration) return;
         if ($.vestingContract != _msgSender()) {
             _checkAuthorized(ownerOf(tokenId), _msgSender(), tokenId);
-            if (vestingDuration < remainingVestingDuration) {
+            if (vestingDuration < remainingVestingDuration || vestingDuration > MAX_VESTING_DURATION) {
                 revert InvalidVestingDuration(vestingDuration, remainingVestingDuration, MAX_VESTING_DURATION);
             }
         }

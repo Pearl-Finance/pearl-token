@@ -177,6 +177,12 @@ contract VotingEscrowTest is Test {
         );
         vePearl.updateVestingDuration(tokenId, 200 weeks);
 
+        vm.prank(address(vesting));
+        vm.expectRevert(
+            abi.encodeWithSelector(VotingEscrow.InvalidVestingDuration.selector, 200 weeks, 0, 104 weeks)
+        );
+        vePearl.updateVestingDuration(tokenId, 200 weeks);
+
         vePearl.updateVestingDuration(tokenId, 100 weeks);
 
         assertEq(vePearl.getRemainingVestingDuration(tokenId), 100 weeks);
