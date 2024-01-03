@@ -39,6 +39,10 @@ contract VotingEscrowTest is Test {
         vePearl = VotingEscrow(address(votingEscrowProxy));
 
         pearl.mint(address(this), 100e18);
+        pearl.transfer(bob, 1e18);
+
+        vm.prank(bob);
+        pearl.transfer(address(this), 1e18);
     }
 
     function test_initials() public {
