@@ -14,11 +14,11 @@ contract DeployAllTestnet is DeployAllBase {
     }
 
     function _getPearlMinterAddress() internal pure override returns (address) {
-        return 0xa9a9138cf74d11B9fda97ea7aFA9425c62d2E939;
+        return 0x7d4f3123548B9E9cbAb7B862e66c718BAea8D99b;
     }
 
     function _getVoterAddress() internal pure override returns (address) {
-        return 0x39edC43746EA76B973B463Fd76C65923b1CB1042;
+        return 0xC65B2a6405Ac38e1607CE6254cf1B28fd210B45b;
     }
 
     function _getMainChainAlias() internal pure override returns (string memory) {
