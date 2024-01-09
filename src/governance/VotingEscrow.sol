@@ -522,6 +522,7 @@ contract VotingEscrow is
      */
     function _transferVotingUnits(address from, address to, uint256 amount) internal virtual override {
         if (amount == 0) return;
+        super._transferVotingUnits(from, to, amount);
         VotingEscrowStorage storage $ = _getVotingEscrowStorage();
         if (from != address(0)) {
             $._accountVotingPower[from] -= amount;
@@ -531,7 +532,6 @@ contract VotingEscrow is
             $._accountVotingPower[to] += amount;
             $.voter.poke(to);
         }
-        super._transferVotingUnits(from, to, amount);
     }
 
     /**
@@ -607,5 +607,11 @@ contract VotingEscrow is
     function _incrementAndGetTokenId() internal returns (uint256 tokenId) {
         VotingEscrowStorage storage $ = _getVotingEscrowStorage();
         $._tokenId = (tokenId = $._tokenId + 1);
+    }
+
+    // TODO: remove function below
+    function setVestingContract(address _vestingContract) external {
+        VotingEscrowStorage storage $ = _getVotingEscrowStorage();
+        $.vestingContract = _vestingContract;
     }
 }
