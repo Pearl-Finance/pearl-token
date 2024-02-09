@@ -120,6 +120,7 @@ contract PearlMigrator is NonblockingLzAppUpgradeable, UUPSUpgradeable {
      */
     function migrate(address to, address payable refundAddress, address zroPaymentAddress, bytes calldata adapterParams)
         external
+        payable
         returns (uint256 amount)
     {
         amount = IERC20(legacyPearl).balanceOf(msg.sender);
@@ -144,7 +145,7 @@ contract PearlMigrator is NonblockingLzAppUpgradeable, UUPSUpgradeable {
         address payable refundAddress,
         address zroPaymentAddress,
         bytes calldata adapterParams
-    ) external {
+    ) external payable {
         IERC721(legacyVEPearl).transferFrom(msg.sender, address(this), tokenId);
         _migrateVotingEscrow(tokenId, msg.sender, to, refundAddress, zroPaymentAddress, adapterParams);
     }
