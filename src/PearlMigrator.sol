@@ -38,7 +38,7 @@ contract PearlMigrator is NonblockingLzAppUpgradeable, UUPSUpgradeable {
     address public immutable legacyPearl;
     address public immutable legacyVEPearl;
 
-    uint16 lzMainChainId;
+    uint16 immutable lzMainChainId;
 
     event Migrate(address from, address to, uint256 amount);
     event MigrateVE(address from, address to, uint256 tokenId);

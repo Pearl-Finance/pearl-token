@@ -178,9 +178,7 @@ abstract contract DeploymentScriptBase is Script {
                 console.log("%s proxy at %s remains unchanged", forContract, proxyAddress);
             }
         } else {
-            ERC1967Proxy proxy = new ERC1967Proxy{
-                salt: salt
-            }(_emptyUUPS, "");
+            ERC1967Proxy proxy = new ERC1967Proxy{salt: salt}(_emptyUUPS, "");
             assert(proxyAddress == address(proxy));
             UUPSUpgradeable(address(proxy)).upgradeToAndCall(implementation, data);
             console.log("%s proxy deployed to %s", forContract, proxyAddress);

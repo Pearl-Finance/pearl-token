@@ -14,11 +14,11 @@ contract DeployAllTestnet is DeployAllBase {
     }
 
     function _getPearlMinterAddress() internal pure override returns (address) {
-        return 0x7d4f3123548B9E9cbAb7B862e66c718BAea8D99b;
+        return 0x043A0D1c7bfb60A9716ECF62F7BAd1c7F0c099a8;
     }
 
     function _getVoterAddress() internal pure override returns (address) {
-        return 0xC65B2a6405Ac38e1607CE6254cf1B28fd210B45b;
+        return 0xfeCdBDD83fe11b9d471971250F784BC0c85Ce48F;
     }
 
     function _getMainChainAlias() internal pure override returns (string memory) {
@@ -31,7 +31,7 @@ contract DeployAllTestnet is DeployAllBase {
 
     function _getDeploymentChainAliases() internal pure override returns (string[] memory aliases) {
         aliases = new string[](2);
-        aliases[0] = "unreal";
+        aliases[0] = _getMainChainAlias();
         aliases[1] = "goerli";
     }
 }

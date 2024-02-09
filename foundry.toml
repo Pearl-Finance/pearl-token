@@ -19,6 +19,7 @@ arbitrum_one = "${ARBITRUM_RPC_URL}"
 unreal = "${UNREAL_RPC_URL}"
 polygon_mumbai = "${MUMBAI_RPC_URL}"
 goerli = "${GOERLI_RPC_URL}"
+sepolia = "${SEPOLIA_RPC_URL}"
 
 [etherscan]
 mainnet = { key = "${ETHERSCAN_MAINNET_KEY}" }

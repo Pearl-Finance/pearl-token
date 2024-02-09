@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity =0.8.20;
 
+import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {IERC20, SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Checkpoints} from "@openzeppelin/contracts/utils/structs/Checkpoints.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
@@ -52,7 +53,7 @@ contract VotingEscrow is
     using VotingMath for uint256;
     using Checkpoints for Checkpoints.Trace208;
 
-    uint256 public constant MIN_VESTING_DURATION = 2 weeks;
+    uint256 public constant MIN_VESTING_DURATION = 1 hours; // TODO: 2 weeks;
     uint256 public constant MAX_VESTING_DURATION = VotingMath.MAX_VESTING_DURATION;
 
     IERC20 public immutable lockedToken;
@@ -120,7 +121,7 @@ contract VotingEscrow is
      */
     function initialize(address _vestingContract, address _voter, address _artProxy) external initializer {
         __ERC721_init("Pearl Voting Escrow", "vePEARL");
-        __Ownable_init(_msgSender());
+        __Ownable_init(msg.sender);
         __Votes_init();
         __UUPSUpgradeable_init();
 
@@ -200,7 +201,7 @@ contract VotingEscrow is
         if (timepoint >= currentTimepoint) {
             revert ERC5805FutureLookup(timepoint, currentTimepoint);
         }
-        return $._totalVotingPowerCheckpoints.upperLookupRecent(SafeCast.toUint48(timepoint));
+        return $._totalVotingPowerCheckpoints.upperLookup(SafeCast.toUint48(timepoint));
     }
 
     /**
@@ -219,7 +220,7 @@ contract VotingEscrow is
         if (timepoint >= currentTimepoint) {
             revert ERC5805FutureLookup(timepoint, currentTimepoint);
         }
-        return $._votingPowerCheckpoints[tokenId].upperLookupRecent(SafeCast.toUint48(timepoint));
+        return $._votingPowerCheckpoints[tokenId].upperLookup(SafeCast.toUint48(timepoint));
     }
 
     /**
@@ -307,7 +308,7 @@ contract VotingEscrow is
         $._mintingTimestamp[tokenId] = clock();
         _mint(receiver, tokenId);
         _updateLock(tokenId, lockedBalance, vestingDuration);
-        lockedToken.safeTransferFrom(_msgSender(), address(this), lockedBalance);
+        lockedToken.safeTransferFrom(msg.sender, address(this), lockedBalance);
     }
 
     /**
@@ -341,7 +342,7 @@ contract VotingEscrow is
     function depositFor(uint256 tokenId, uint256 amount) external {
         VotingEscrowStorage storage $ = _getVotingEscrowStorage();
         _updateLock(tokenId, $._lockedBalance[tokenId] + amount, $._remainingVestingDuration[tokenId]);
-        lockedToken.safeTransferFrom(_msgSender(), address(this), amount);
+        lockedToken.safeTransferFrom(msg.sender, address(this), amount);
     }
 
     /**
@@ -357,8 +358,8 @@ contract VotingEscrow is
         address owner = _requireOwned(tokenId);
         address targetOwner = _requireOwned(intoTokenId);
 
-        _checkAuthorized(owner, _msgSender(), tokenId);
-        _checkAuthorized(targetOwner, _msgSender(), intoTokenId);
+        _checkAuthorized(owner, msg.sender, tokenId);
+        _checkAuthorized(targetOwner, msg.sender, intoTokenId);
 
         VotingEscrowStorage storage $ = _getVotingEscrowStorage();
 
@@ -388,8 +389,8 @@ contract VotingEscrow is
             revert InvalidSharesLength(shares.length);
         }
         address owner = _requireOwned(tokenId);
-        _checkAuthorized(owner, _msgSender(), tokenId);
-        tokenIds = new uint[](shares.length);
+        _checkAuthorized(owner, msg.sender, tokenId);
+        tokenIds = new uint256[](shares.length);
         tokenIds[0] = tokenId;
         uint256 totalShares;
         for (uint256 i = shares.length; i != 0;) {
@@ -434,8 +435,8 @@ contract VotingEscrow is
         VotingEscrowStorage storage $ = _getVotingEscrowStorage();
         uint256 remainingVestingDuration = $._remainingVestingDuration[tokenId];
         if (vestingDuration == remainingVestingDuration) return;
-        if ($.vestingContract != _msgSender()) {
-            _checkAuthorized(ownerOf(tokenId), _msgSender(), tokenId);
+        if ($.vestingContract != msg.sender) {
+            _checkAuthorized(ownerOf(tokenId), msg.sender, tokenId);
             if (vestingDuration < remainingVestingDuration || vestingDuration > MAX_VESTING_DURATION) {
                 revert InvalidVestingDuration(vestingDuration, remainingVestingDuration, MAX_VESTING_DURATION);
             }
@@ -580,7 +581,7 @@ contract VotingEscrow is
      * @param account The address of the account for which the default delegate is being set.
      */
     function _setDefaultDelegate(address account) internal virtual {
-        if (_msgSender() == address(0)) return;
+        if (msg.sender == address(0)) return;
         if (_getVotingEscrowStorage()._defaultDelegateSet[account]) return;
         _delegate(account, account);
     }
@@ -607,11 +608,5 @@ contract VotingEscrow is
     function _incrementAndGetTokenId() internal returns (uint256 tokenId) {
         VotingEscrowStorage storage $ = _getVotingEscrowStorage();
         $._tokenId = (tokenId = $._tokenId + 1);
-    }
-
-    // TODO: remove function below
-    function setVestingContract(address _vestingContract) external {
-        VotingEscrowStorage storage $ = _getVotingEscrowStorage();
-        $.vestingContract = _vestingContract;
     }
 }

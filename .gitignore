@@ -5,3 +5,5 @@ out/
 .env
 
 lcov.info
+
+NOTES.md

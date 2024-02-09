@@ -57,23 +57,48 @@ abstract contract DeployAllBase is PearlDeploymentScript {
         string memory mainChainAlias = _getMainChainAlias();
         string memory migrationChainAlias = _getMigrationChainAlias();
 
+        console.log("# %s", _getMigrationChainAlias());
         vm.createSelectFork(_getMigrationChainAlias());
 
         uint256 premintAmount = IERC20(_getLegacyPearlAddress()).totalSupply();
 
         vm.startBroadcast(_pk);
         address migratorAddress = _deployMigrator();
+
+        uint16 lzMainChainId = _getLzChainId(mainChainAlias);
+        uint256 minGasLimit = PearlMigrator(migratorAddress).minDstGasLookup(lzMainChainId, 0);
+        if (minGasLimit != 200_000) {
+            PearlMigrator(migratorAddress).setMinDstGas(lzMainChainId, 0, 200_000);
+            console.log("PearlMigrator minGasLimit for Pearl migration set to 200_000");
+        }
+        minGasLimit = PearlMigrator(migratorAddress).minDstGasLookup(lzMainChainId, 1);
+        if (minGasLimit != 200_000) {
+            PearlMigrator(migratorAddress).setMinDstGas(lzMainChainId, 1, 200_000);
+            console.log("PearlMigrator minGasLimit for VE migration set to 200_000");
+        }
+        (address pearlAddress,) = _computeProxyAddress("Pearl");
+        if (
+            !PearlMigrator(migratorAddress).isTrustedRemote(
+                lzMainChainId, abi.encodePacked(pearlAddress, migratorAddress)
+            )
+        ) {
+            PearlMigrator(migratorAddress).setTrustedRemote(
+                lzMainChainId, abi.encodePacked(pearlAddress, migratorAddress)
+            );
+            console.log("Trusted remote on migrator set for main chain");
+        }
         vm.stopBroadcast();
 
         string[] memory deploymentChainAliases = _getDeploymentChainAliases();
 
         for (uint256 i = 0; i < deploymentChainAliases.length; i++) {
             console.log("---");
+            console.log("# %s", deploymentChainAliases[i]);
             vm.createSelectFork(deploymentChainAliases[i]);
             vm.startBroadcast(_pk);
             Pearl pearl;
             if (keccak256(abi.encodePacked(deploymentChainAliases[i])) == keccak256(abi.encodePacked(mainChainAlias))) {
-                address pearlAddress = _deployPearl(premintAmount);
+                pearlAddress = _deployPearl(premintAmount);
                 pearl = Pearl(pearlAddress);
                 if (pearl.minter() != _getPearlMinterAddress()) {
                     pearl.setMinter(_getPearlMinterAddress());
@@ -84,11 +109,13 @@ abstract contract DeployAllBase is PearlDeploymentScript {
                         _getLzChainId(migrationChainAlias), abi.encodePacked(migratorAddress, pearlAddress)
                     )
                 ) {
-                    pearl.setTrustedRemoteAddress(_getLzChainId(migrationChainAlias), abi.encodePacked(migratorAddress));
+                    pearl.setTrustedRemote(
+                        _getLzChainId(migrationChainAlias), abi.encodePacked(migratorAddress, pearlAddress)
+                    );
                 }
                 _deployVEPearl(pearlAddress);
             } else {
-                address pearlAddress = _deployPearl();
+                pearlAddress = _deployPearl();
                 pearl = Pearl(pearlAddress);
             }
             for (uint256 j = 0; j < deploymentChainAliases.length; j++) {
@@ -323,7 +350,7 @@ abstract contract DeployAllBase is PearlDeploymentScript {
             migrator = PearlMigrator(migratorAddress);
         } else {
             migrator =
-            new PearlMigrator{salt: _SALT}(lzEndpoint, legacyPearlAddress, legacyVEPearlAddress, lzMainChainId);
+                new PearlMigrator{salt: _SALT}(lzEndpoint, legacyPearlAddress, legacyVEPearlAddress, lzMainChainId);
             assert(migratorAddress == address(migrator));
             console.log("Pearl Migrator deployed to %s", migratorAddress);
         }
@@ -347,15 +374,17 @@ abstract contract DeployAllBase is PearlDeploymentScript {
         if (chain == keccak256("polygon")) {
             return 109;
         } else if (chain == keccak256("real")) {
-            return 0; // TODO
+            revert("Unsupported chain");
         } else if (chain == keccak256("arbitrum_one")) {
             return 110;
         } else if (chain == keccak256("polygon_mumbai")) {
             return 10109;
         } else if (chain == keccak256("unreal")) {
-            return 0; // TODO
+            return 10252;
         } else if (chain == keccak256("goerli")) {
             return 10121;
+        } else if (chain == keccak256("sepolia")) {
+            return 10161;
         } else {
             revert("Unsupported chain");
         }
@@ -387,15 +416,17 @@ abstract contract DeployAllBase is PearlDeploymentScript {
         if (chainId == getChain("polygon").chainId) {
             lzEndpoint = 0x3c2269811836af69497E5F486A85D7316753cf62;
         } else if (chainId == getChain("real").chainId) {
-            lzEndpoint = address(0); // TODO
+            revert("No LayerZero endpoint defined for this chain.");
         } else if (chainId == getChain("arbitrum_one").chainId) {
             lzEndpoint = 0x3c2269811836af69497E5F486A85D7316753cf62;
         } else if (chainId == getChain("polygon_mumbai").chainId) {
             lzEndpoint = 0xf69186dfBa60DdB133E91E9A4B5673624293d8F8;
         } else if (chainId == getChain("unreal").chainId) {
-            lzEndpoint = address(0); // TODO
+            lzEndpoint = 0x2cA20802fd1Fd9649bA8Aa7E50F0C82b479f35fe;
         } else if (chainId == getChain("goerli").chainId) {
             lzEndpoint = 0xbfD2135BFfbb0B5378b56643c2Df8a87552Bfa23;
+        } else if (chainId == getChain("sepolia").chainId) {
+            lzEndpoint = 0xae92d5aD7583AD66E49A0c67BAd18F6ba52dDDc1;
         } else {
             revert("No LayerZero endpoint defined for this chain.");
         }
