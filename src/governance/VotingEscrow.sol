@@ -53,7 +53,7 @@ contract VotingEscrow is
     using VotingMath for uint256;
     using Checkpoints for Checkpoints.Trace208;
 
-    uint256 public constant MIN_VESTING_DURATION = 1 hours; // TODO: 2 weeks;
+    uint256 public constant MIN_VESTING_DURATION = 2 weeks;
     uint256 public constant MAX_VESTING_DURATION = VotingMath.MAX_VESTING_DURATION;
 
     IERC20 public immutable lockedToken;
@@ -84,10 +84,11 @@ contract VotingEscrow is
         }
     }
 
-    error InvalidZeroAddress();
     error InvalidSharesLength(uint256 length);
     error InvalidVestingDuration(uint256 duration, uint256 min, uint256 max);
+    error InvalidZeroAddress();
     error NotAuthorized(address account);
+    error SelfMerge();
     error VestingNotFinished();
     error ZeroLockBalance();
 
@@ -301,7 +302,11 @@ contract VotingEscrow is
             revert ZeroLockBalance();
         }
         if (vestingDuration < MIN_VESTING_DURATION || vestingDuration > MAX_VESTING_DURATION) {
-            revert InvalidVestingDuration(vestingDuration, MIN_VESTING_DURATION, MAX_VESTING_DURATION);
+            // If mint was triggered by the Pearl token, this is a migration and we don't need to (and shouldn't)
+            // enforce lock duration limits.
+            if (msg.sender != address(lockedToken)) {
+                revert InvalidVestingDuration(vestingDuration, MIN_VESTING_DURATION, MAX_VESTING_DURATION);
+            }
         }
         tokenId = _incrementAndGetTokenId();
         VotingEscrowStorage storage $ = _getVotingEscrowStorage();
@@ -355,6 +360,10 @@ contract VotingEscrow is
      * @param intoTokenId The tokenId of the target NFT into which the source NFT will be merged.
      */
     function merge(uint256 tokenId, uint256 intoTokenId) external {
+        if (tokenId == intoTokenId) {
+            revert SelfMerge();
+        }
+
         address owner = _requireOwned(tokenId);
         address targetOwner = _requireOwned(intoTokenId);
 

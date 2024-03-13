@@ -60,7 +60,7 @@ abstract contract DeployAllBase is PearlDeploymentScript {
         console.log("# %s", _getMigrationChainAlias());
         vm.createSelectFork(_getMigrationChainAlias());
 
-        uint256 premintAmount = IERC20(_getLegacyPearlAddress()).totalSupply();
+        uint256 premintAmount = IERC20(_getLegacyPearlAddress()).balanceOf(_getLegacyVEPearlAddress());
 
         vm.startBroadcast(_pk);
         address migratorAddress = _deployMigrator();
@@ -72,9 +72,9 @@ abstract contract DeployAllBase is PearlDeploymentScript {
             console.log("PearlMigrator minGasLimit for Pearl migration set to 200_000");
         }
         minGasLimit = PearlMigrator(migratorAddress).minDstGasLookup(lzMainChainId, 1);
-        if (minGasLimit != 200_000) {
-            PearlMigrator(migratorAddress).setMinDstGas(lzMainChainId, 1, 200_000);
-            console.log("PearlMigrator minGasLimit for VE migration set to 200_000");
+        if (minGasLimit != 1_000_000) {
+            PearlMigrator(migratorAddress).setMinDstGas(lzMainChainId, 1, 1_000_000);
+            console.log("PearlMigrator minGasLimit for VE migration set to 1_000_000");
         }
         (address pearlAddress,) = _computeProxyAddress("Pearl");
         if (
@@ -221,12 +221,7 @@ abstract contract DeployAllBase is PearlDeploymentScript {
             _SALT, keccak256(abi.encodePacked(type(Pearl).creationCode, abi.encode(mainChainId, lzEndpoint)))
         );
 
-        (address pearlProxyAddress,) = _computeProxyAddress("Pearl");
         (address vePearlProxyAddress,) = _computeProxyAddress("vePearl");
-
-        if (_isDeployed(pearlProxyAddress)) {
-            premintAmount = 0;
-        }
 
         Pearl pearl;
 
@@ -244,7 +239,21 @@ abstract contract DeployAllBase is PearlDeploymentScript {
         pearl = Pearl(pearlProxy);
 
         if (premintAmount != 0) {
-            pearl.mint(pearlAddress, premintAmount);
+            uint256 alreadyPreminted = pearl.balanceOf(address(pearlProxy));
+            if (alreadyPreminted < premintAmount) {
+                address minter = pearl.minter();
+                if (minter != _deployer) {
+                    pearl.setMinter(_deployer);
+                    console.log("Pearl minter set to %s", _deployer);
+                }
+                premintAmount -= alreadyPreminted;
+                pearl.mint(pearlProxy, premintAmount);
+                console.log("Preminted %d Pearl to %s", premintAmount, pearlProxy);
+                if (minter != _deployer) {
+                    pearl.setMinter(minter);
+                    console.log("Pearl minter reset to %s", minter);
+                }
+            }
         }
     }
 
@@ -385,6 +394,8 @@ abstract contract DeployAllBase is PearlDeploymentScript {
             return 10121;
         } else if (chain == keccak256("sepolia")) {
             return 10161;
+        } else if (chain == keccak256("arbitrum_one_sepolia")) {
+            return 10231;
         } else {
             revert("Unsupported chain");
         }
@@ -427,6 +438,8 @@ abstract contract DeployAllBase is PearlDeploymentScript {
             lzEndpoint = 0xbfD2135BFfbb0B5378b56643c2Df8a87552Bfa23;
         } else if (chainId == getChain("sepolia").chainId) {
             lzEndpoint = 0xae92d5aD7583AD66E49A0c67BAd18F6ba52dDDc1;
+        } else if (chainId == getChain("arbitrum_one_sepolia").chainId) {
+            lzEndpoint = 0x6098e96a28E02f27B1e6BD381f870F1C8Bd169d3;
         } else {
             revert("No LayerZero endpoint defined for this chain.");
         }

@@ -6,6 +6,7 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 import {CrossChainToken} from "@tangible/tokens/CrossChainToken.sol";
+import {OFTCoreUpgradeable} from "@tangible/layerzero/token/oft/v1/OFTCoreUpgradeable.sol";
 import {OFTUpgradeable} from "@tangible/layerzero/token/oft/v1/OFTUpgradeable.sol";
 
 import {BytesLib} from "@layerzerolabs/contracts/libraries/BytesLib.sol";
@@ -197,6 +198,45 @@ contract Pearl is CrossChainToken, OFTUpgradeable, UUPSUpgradeable {
         } else {
             super._nonblockingLzReceive(srcChainId, srcAddress, nonce, payload);
         }
+    }
+
+    /// @inheritdoc OFTCoreUpgradeable
+    function _send(
+        address from,
+        uint16 dstChainId,
+        bytes memory toAddress,
+        uint256 amount,
+        address payable refundAddress,
+        address zroPaymentAddress,
+        bytes memory adapterParams
+    ) internal virtual override {
+        _checkAdapterParams(dstChainId, PT_SEND, adapterParams, NO_EXTRA_GAS);
+
+        amount = _debitFrom(from, dstChainId, toAddress, amount);
+
+        bytes memory lzPayload = abi.encode(PT_SEND, msg.sender, from, toAddress, amount);
+        _lzSend(dstChainId, lzPayload, refundAddress, zroPaymentAddress, adapterParams, msg.value);
+
+        emit SendToChain(dstChainId, from, toAddress, amount);
+    }
+
+    /// @inheritdoc OFTCoreUpgradeable
+    function _sendAck(uint16 srcChainId, bytes memory srcAddressBytes, uint64, bytes memory payload)
+        internal
+        virtual
+        override
+    {
+        (, address initiator, address from, bytes memory toAddressBytes, uint256 amount) =
+            abi.decode(payload, (uint16, address, address, bytes, uint256));
+
+        address src = srcAddressBytes.toAddress(0);
+        address to = toAddressBytes.toAddress(0);
+
+        amount = _creditTo(srcChainId, to, amount);
+
+        _tryNotifyReceiver(srcChainId, initiator, from, src, to, amount);
+
+        emit ReceiveFromChain(srcChainId, to, amount);
     }
 
     /**

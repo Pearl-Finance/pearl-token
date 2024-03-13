@@ -14,11 +14,11 @@ contract DeployAllTestnet is DeployAllBase {
     }
 
     function _getPearlMinterAddress() internal pure override returns (address) {
-        return 0x043A0D1c7bfb60A9716ECF62F7BAd1c7F0c099a8;
+        return 0x80D1e7Be1475f9978F6E8D909d96b93a760FbBBb;
     }
 
     function _getVoterAddress() internal pure override returns (address) {
-        return 0xfeCdBDD83fe11b9d471971250F784BC0c85Ce48F;
+        return 0x0F5f036f75B8Cf772a97F8Df5902a448d60CDAeB;
     }
 
     function _getMainChainAlias() internal pure override returns (string memory) {
@@ -30,8 +30,9 @@ contract DeployAllTestnet is DeployAllBase {
     }
 
     function _getDeploymentChainAliases() internal pure override returns (string[] memory aliases) {
-        aliases = new string[](2);
+        aliases = new string[](3);
         aliases[0] = _getMainChainAlias();
-        aliases[1] = "goerli";
+        aliases[1] = "sepolia";
+        aliases[2] = "arbitrum_one_sepolia";
     }
 }

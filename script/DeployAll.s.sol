@@ -30,8 +30,7 @@ contract DeployAll is DeployAllBase {
     }
 
     function _getDeploymentChainAliases() internal pure override returns (string[] memory aliases) {
-        aliases = new string[](2);
+        aliases = new string[](1);
         aliases[0] = "real";
-        aliases[1] = "arbitrum_one";
     }
 }
