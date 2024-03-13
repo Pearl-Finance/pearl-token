@@ -8,11 +8,6 @@ optimizer_runs = 1_000
 via_ir = true
 bytecode_hash = "none"
 
-[profile.optimized]
-optimizer_runs = 1_000
-via_ir = true
-bytecode_hash = "none"
-
 [rpc_endpoints]
 real = "${REAL_RPC_URL}"
 polygon = "${POLYGON_RPC_URL}"

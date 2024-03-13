@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import {DeployAllBase} from "./base/DeployAllBase.sol";
 
-// FOUNDRY_PROFILE=optimized forge script ./script/DeployAllTestnet.s.sol --legacy --broadcast
+// forge script ./script/DeployAllTestnet.s.sol --legacy --broadcast --gas-estimate-multiplier 200
 contract DeployAllTestnet is DeployAllBase {
     function _getLegacyPearlAddress() internal pure override returns (address) {
         return 0x607Ed4f1296C800b3ABCb82Af24Ef382BdA1B181;
@@ -14,11 +14,11 @@ contract DeployAllTestnet is DeployAllBase {
     }
 
     function _getPearlMinterAddress() internal pure override returns (address) {
-        return 0x80D1e7Be1475f9978F6E8D909d96b93a760FbBBb;
+        return 0x6f76911a435694657048F595A4300AA77177558c;
     }
 
     function _getVoterAddress() internal pure override returns (address) {
-        return 0x0F5f036f75B8Cf772a97F8Df5902a448d60CDAeB;
+        return 0x1006A42889421fa7A56632c19140BA781ea4A9Ad;
     }
 
     function _getMainChainAlias() internal pure override returns (string memory) {
