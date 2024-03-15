@@ -43,6 +43,7 @@ contract PearlMigrator is NonblockingLzAppUpgradeable, UUPSUpgradeable {
     event Migrate(address indexed from, address indexed to, uint256 amount);
     event MigrateVE(address indexed from, address indexed to, uint256 tokenId);
 
+    error InvalidZeroAddress();
     error NonPositiveLockedAmount(int128 amount);
     error LockExpired(uint256 expiry);
 
@@ -79,6 +80,9 @@ contract PearlMigrator is NonblockingLzAppUpgradeable, UUPSUpgradeable {
     constructor(address lzEndpoint, address _legacyPearl, address _legacyVEPearl, uint16 _lzMainChainId)
         NonblockingLzAppUpgradeable(lzEndpoint)
     {
+        if (lzEndpoint == address(0) || _legacyPearl == address(0) || _legacyVEPearl == address(0)) {
+            revert InvalidZeroAddress();
+        }
         legacyPearl = _legacyPearl;
         legacyVEPearl = _legacyVEPearl;
         lzMainChainId = _lzMainChainId;
