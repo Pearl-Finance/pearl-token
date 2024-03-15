@@ -10,6 +10,7 @@ import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/U
 import {NonblockingLzAppUpgradeable} from "@tangible/layerzero/lzApp/NonblockingLzAppUpgradeable.sol";
 
 import {IVotingEscrow} from "./interfaces/IVotingEscrow.sol";
+import {ILegacyVotingEscrow} from "./interfaces/ILegacyVotingEscrow.sol";
 
 /**
  * @title Pearl Migrator
@@ -238,9 +239,7 @@ contract PearlMigrator is NonblockingLzAppUpgradeable, UUPSUpgradeable {
         bytes memory adapterParams
     ) internal {
         _checkAdapterParams(lzMainChainId, PT_SEND_VE, adapterParams, NO_EXTRA_GAS);
-        bytes memory lockData =
-            Address.functionStaticCall(legacyVEPearl, abi.encodeWithSignature("locked(uint256)", tokenId));
-        (int128 amount, uint256 end) = abi.decode(lockData, (int128, uint256));
+        (int128 amount, uint256 end) = ILegacyVotingEscrow(legacyVEPearl).locked(tokenId);
         if (amount <= 0) revert NonPositiveLockedAmount(amount);
         if (end <= block.timestamp) revert LockExpired(end);
         uint256 lockedAmount = uint256(int256(amount));
