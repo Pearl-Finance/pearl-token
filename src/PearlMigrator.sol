@@ -29,11 +29,11 @@ import {IVotingEscrow} from "./interfaces/IVotingEscrow.sol";
  * The contract uses LayerZero for cross-chain communication, ensuring reliable and secure migration of token holdings.
  */
 contract PearlMigrator is NonblockingLzAppUpgradeable, UUPSUpgradeable {
-    uint256 private constant NO_EXTRA_GAS = 0;
+    uint256 public constant NO_EXTRA_GAS = 0;
 
     // packet type
-    uint16 private constant PT_SEND = 0;
-    uint16 private constant PT_SEND_VE = 1;
+    uint16 public constant PT_SEND = 0;
+    uint16 public constant PT_SEND_VE = 1;
 
     address public immutable legacyPearl;
     address public immutable legacyVEPearl;

@@ -38,7 +38,7 @@ contract Pearl is CrossChainToken, OFTUpgradeable, UUPSUpgradeable {
     using BytesLib for bytes;
     using SafeERC20 for IERC20;
 
-    uint16 private constant PT_SEND_VE = 1;
+    uint16 public constant PT_SEND_VE = 1;
 
     /// @custom:storage-location erc7201:pearl.storage.Pearl
     struct PearlStorage {
