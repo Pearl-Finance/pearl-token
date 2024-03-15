@@ -96,6 +96,9 @@ contract VotingEscrow is
      * @custom:oz-upgrades-unsafe-allow constructor
      */
     constructor(address _lockedToken) {
+        if (_lockedToken == address(0)) {
+            revert InvalidZeroAddress();
+        }
         lockedToken = IERC20(_lockedToken);
         _disableInitializers();
     }
@@ -121,6 +124,10 @@ contract VotingEscrow is
      * @param _artProxy The address of the art proxy contract for NFT representation.
      */
     function initialize(address _vestingContract, address _voter, address _artProxy) external initializer {
+        if (_vestingContract == address(0) || _voter == address(0) || _artProxy == address(0)) {
+            revert InvalidZeroAddress();
+        }
+
         __ERC721_init("Pearl Voting Escrow", "vePEARL");
         __Ownable_init(msg.sender);
         __Votes_init();
