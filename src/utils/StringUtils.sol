@@ -19,6 +19,10 @@ import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 library StringUtils {
     using Strings for uint256;
 
+    uint256 private constant _SECONDS_IN_DAY = 86400;
+    uint256 private constant _SECONDS_IN_HOUR = 3600;
+    uint256 private constant _SECONDS_IN_MINUTE = 60;
+
     /**
      * @notice Converts a given duration in seconds to a human-readable string format.
      * @dev This function breaks down the total duration into days, hours, and minutes, and constructs a string
@@ -30,10 +34,10 @@ library StringUtils {
      * @return A string representing the human-readable format of the duration.
      */
     function convertDurationToString(uint256 duration, string memory _default) internal pure returns (string memory) {
-        uint256 _days = duration / 86400;
-        uint256 _hours = (duration % 86400) / 3600;
-        uint256 _minutes = (duration % 3600) / 60;
-        uint256 _seconds = duration % 60;
+        uint256 _days = duration / _SECONDS_IN_DAY;
+        uint256 _hours = (duration % _SECONDS_IN_DAY) / _SECONDS_IN_HOUR;
+        uint256 _minutes = (duration % _SECONDS_IN_HOUR) / _SECONDS_IN_MINUTE;
+        uint256 _seconds = duration % _SECONDS_IN_MINUTE;
 
         bytes memory dayPart = quantify(_days, "day");
         bytes memory hourPart = quantify(_hours, "hour");
@@ -81,9 +85,10 @@ library StringUtils {
      * @return A string representation of the `uint256` value, formatted with the specified number of decimal places.
      */
     function formatUintToString(uint256 value, uint256 decimals) internal pure returns (string memory) {
-        uint256 mainValue = value / (10 ** decimals);
+        uint256 scale = 10 ** decimals;
+        uint256 mainValue = value / scale;
         string memory mainStr = mainValue.toString();
-        uint256 decimalValue = value % (10 ** decimals);
+        uint256 decimalValue = value % scale;
         // return early if decimal value is 0
         if (decimalValue == 0) {
             return mainStr;
@@ -125,9 +130,13 @@ library StringUtils {
     function removeTrailingZeros(string memory str) private pure returns (string memory) {
         bytes memory strBytes = bytes(str);
         uint256 strLength = strBytes.length;
-        while (strLength > 0 && strBytes[strLength - 1] == "0") {
+        while (strLength > 0) {
             unchecked {
                 --strLength;
+                if (strBytes[strLength] != "0") {
+                    ++strLength;
+                    break;
+                }
             }
         }
         return substring(strBytes, 0, strLength);
@@ -149,13 +158,15 @@ library StringUtils {
         pure
         returns (string memory)
     {
-        bytes memory result = new bytes(endIndex - startIndex);
-        uint256 j = 0;
+        uint256 length;
+        unchecked {
+            length = endIndex - startIndex;
+        }
+        bytes memory result = new bytes(length);
         for (uint256 i = startIndex; i < endIndex;) {
-            bytes(result)[j] = strBytes[i];
             unchecked {
+                bytes(result)[i - startIndex] = strBytes[i];
                 ++i;
-                ++j;
             }
         }
         return string(result);
