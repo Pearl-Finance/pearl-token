@@ -244,7 +244,10 @@ contract PearlMigrator is NonblockingLzAppUpgradeable, UUPSUpgradeable {
         if (amount <= 0) revert NonPositiveLockedAmount(amount);
         if (end <= block.timestamp) revert LockExpired(end);
         uint256 lockedAmount = uint256(int256(amount));
-        uint256 vestingDuration = end - block.timestamp;
+        uint256 vestingDuration;
+        unchecked {
+            vestingDuration = end - block.timestamp;
+        }
         bytes memory toAddress = abi.encodePacked(to);
         bytes memory lzPayload = abi.encode(PT_SEND_VE, toAddress, tokenId, lockedAmount, vestingDuration);
         _lzSend(lzMainChainId, lzPayload, refundAddress, zroPaymentAddress, adapterParams, msg.value);
