@@ -427,6 +427,9 @@ contract VotingEscrow is
             tokenIds[i] = newTokenId;
             $._mintingTimestamp[newTokenId] = mintingTimestamp;
             _mint(owner, newTokenId);
+            if (owner != msg.sender && !_isAuthorized(owner, msg.sender, newTokenId)) {
+                _approve(msg.sender, newTokenId, owner);
+            }
             _updateLock(newTokenId, _lockedBalance, remainingVestingDuration);
             unchecked {
                 remainingBalance -= _lockedBalance;
