@@ -47,22 +47,6 @@ contract PearlMigrator is NonblockingLzAppUpgradeable, UUPSUpgradeable {
     error NonPositiveLockedAmount(int128 amount);
     error LockExpired(uint256 expiry);
 
-    /// @custom:storage-location erc7201:pearl.storage.PearlMigrator
-    struct PearlMigratorStorage {
-        bool useCustomAdapterParams;
-    }
-
-    // keccak256(abi.encode(uint256(keccak256("pearl.storage.PearlMigrator")) - 1)) & ~bytes32(uint256(0xff))
-    bytes32 private constant PearlMigratorStorageLocation =
-        0x086e538ddcff28e0d5390fa3e087508bf336263c3dc631586de25a045ce3af00;
-
-    function _getPearlMigratorStorage() private pure returns (PearlMigratorStorage storage $) {
-        // slither-disable-next-line assembly
-        assembly {
-            $.slot := PearlMigratorStorageLocation
-        }
-    }
-
     /**
      * @dev Constructor for the PearlMigrator contract. Initializes the contract with LayerZero endpoint, legacy Pearl,
      * main chain ID, and new Pearl contract addresses.
@@ -107,8 +91,6 @@ contract PearlMigrator is NonblockingLzAppUpgradeable, UUPSUpgradeable {
      */
     function initialize() external initializer {
         __NonblockingLzApp_init(msg.sender);
-        PearlMigratorStorage storage $ = _getPearlMigratorStorage();
-        $.useCustomAdapterParams = true;
     }
 
     /**
@@ -285,11 +267,6 @@ contract PearlMigrator is NonblockingLzAppUpgradeable, UUPSUpgradeable {
         internal
         virtual
     {
-        PearlMigratorStorage storage $ = _getPearlMigratorStorage();
-        if ($.useCustomAdapterParams) {
-            _checkGasLimit(dstChainId, pkType, adapterParams, extraGas);
-        } else {
-            require(adapterParams.length == 0, "PearlMigrator: _adapterParams must be empty.");
-        }
+        _checkGasLimit(dstChainId, pkType, adapterParams, extraGas);
     }
 }
