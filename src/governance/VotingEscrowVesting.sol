@@ -4,6 +4,7 @@ pragma solidity =0.8.20;
 import {IERC6372} from "@openzeppelin/contracts/interfaces/IERC6372.sol";
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Time} from "@openzeppelin/contracts/utils/types/Time.sol";
 
@@ -30,9 +31,11 @@ import {IVotingEscrow} from "../interfaces/IVotingEscrow.sol";
  * The contract includes safety checks and custom errors for robust error handling and user feedback.
  */
 contract VotingEscrowVesting is ReentrancyGuard, IERC6372 {
+    using SafeCast for uint256;
+
     struct VestingSchedule {
-        uint256 startTime;
-        uint256 endTime;
+        uint48 startTime;
+        uint48 endTime;
     }
 
     mapping(address owner => uint256[]) private _depositedTokens;
@@ -121,7 +124,7 @@ contract VotingEscrowVesting is ReentrancyGuard, IERC6372 {
         uint256 amount = votingEscrow.getLockedAmount(tokenId);
         _addTokenToDepositorEnumeration(msg.sender, tokenId);
         emit Deposit(msg.sender, tokenId, endTime, amount);
-        vestingSchedules[tokenId] = VestingSchedule({startTime: startTime, endTime: endTime});
+        vestingSchedules[tokenId] = VestingSchedule({startTime: startTime.toUint48(), endTime: endTime.toUint48()});
         votingEscrow.updateVestingDuration(tokenId, 0); // effectively remove voting power during vesting
         votingEscrow.transferFrom(msg.sender, address(this), tokenId);
     }
@@ -136,10 +139,6 @@ contract VotingEscrowVesting is ReentrancyGuard, IERC6372 {
      * @custom:error NotAuthorized Indicates the caller is not authorized to withdraw the specified token.
      */
     function withdraw(address receiver, uint256 tokenId) external nonReentrant {
-        if (depositors[tokenId] != msg.sender) {
-            revert NotAuthorized(msg.sender);
-        }
-
         VestingSchedule storage tokenSchedule = vestingSchedules[tokenId];
         uint256 endTime = tokenSchedule.endTime;
 
@@ -147,10 +146,11 @@ contract VotingEscrowVesting is ReentrancyGuard, IERC6372 {
         // keep its initial default value of 0.
         // slither-disable-next-line uninitialized-local
         uint256 remainingTime;
+        uint256 time = clock();
 
-        if (endTime > clock()) {
+        if (endTime > time) {
             unchecked {
-                remainingTime = endTime - clock();
+                remainingTime = endTime - time;
             }
         }
 
@@ -158,8 +158,11 @@ contract VotingEscrowVesting is ReentrancyGuard, IERC6372 {
 
         emit Withdraw(msg.sender, tokenId, receiver, remainingTime);
 
+        if (remainingTime != 0) {
+            votingEscrow.updateVestingDuration(tokenId, remainingTime);
+        }
+
         votingEscrow.transferFrom(address(this), receiver, tokenId);
-        votingEscrow.updateVestingDuration(tokenId, remainingTime);
     }
 
     /**
@@ -175,10 +178,6 @@ contract VotingEscrowVesting is ReentrancyGuard, IERC6372 {
      * @custom:error VestingNotFinished Indicates the vesting period for the token is not yet complete.
      */
     function claim(address receiver, uint256 tokenId) external nonReentrant {
-        if (depositors[tokenId] != msg.sender) {
-            revert NotAuthorized(msg.sender);
-        }
-
         VestingSchedule storage tokenSchedule = vestingSchedules[tokenId];
 
         if (tokenSchedule.endTime > clock()) {
@@ -241,7 +240,9 @@ contract VotingEscrowVesting is ReentrancyGuard, IERC6372 {
         uint256 lastTokenIndex = tokens.length - 1;
         uint256 tokenIndex = _depositedTokensIndex[tokenId];
 
-        assert(tokens[tokenIndex] == tokenId);
+        if (tokens[tokenIndex] != tokenId) {
+            revert NotAuthorized(from);
+        }
 
         if (tokenIndex != lastTokenIndex) {
             uint256 lastTokenId = tokens[lastTokenIndex];
