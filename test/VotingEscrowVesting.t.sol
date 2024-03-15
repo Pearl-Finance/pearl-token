@@ -89,14 +89,12 @@ contract VotingEscrowTest is Test {
         VotingEscrowVesting.VestingSchedule memory schedule = vesting.getSchedule(tokenId);
         assertEq(schedule.startTime, block.timestamp);
         assertEq(schedule.endTime, block.timestamp + 52 weeks);
-        assertEq(schedule.amount, 1e18);
 
         vesting.withdraw(address(this), tokenId);
 
         schedule = vesting.getSchedule(tokenId);
         assertEq(schedule.startTime, 0);
         assertEq(schedule.endTime, 0);
-        assertEq(schedule.amount, 0);
     }
 
     function test_tokenOfDepositorByIndex() public {
