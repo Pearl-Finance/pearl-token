@@ -67,6 +67,7 @@ contract Pearl is CrossChainToken, OFTUpgradeable, UUPSUpgradeable {
 
     event MinterUpdated(address indexed minter);
 
+    error InvalidZeroAddress();
     error NotAuthorized(address caller);
     error UnsupportedChain(uint256 chainId);
     error ValueUnchanged();
@@ -98,6 +99,9 @@ contract Pearl is CrossChainToken, OFTUpgradeable, UUPSUpgradeable {
      * @param votingEscrow The address of the voting escrow (VE) contract to be associated with this token.
      */
     function initialize(address votingEscrow) external initializer {
+        if (votingEscrow == address(0)) {
+            revert InvalidZeroAddress();
+        }
         __OFT_init(msg.sender, "Pearl", "PEARL");
         PearlStorage storage $ = _getPearlStorage();
         $.minter = msg.sender;
