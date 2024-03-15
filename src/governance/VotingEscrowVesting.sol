@@ -39,8 +39,8 @@ contract VotingEscrowVesting is ReentrancyGuard, IERC6372 {
     mapping(address owner => uint256[]) private _depositedTokens;
     mapping(uint256 tokenId => uint256) private _depositedTokensIndex;
 
-    mapping(uint256 tokenId => VestingSchedule) vestingSchedules;
-    mapping(uint256 tokenId => address owner) depositors;
+    mapping(uint256 tokenId => VestingSchedule) public vestingSchedules;
+    mapping(uint256 tokenId => address owner) public depositors;
 
     IVotingEscrow public immutable votingEscrow;
 
