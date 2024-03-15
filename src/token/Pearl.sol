@@ -65,6 +65,8 @@ contract Pearl is CrossChainToken, OFTUpgradeable, UUPSUpgradeable {
         uint256 vestingDuration
     );
 
+    event MinterUpdated(address indexed minter);
+
     error NotAuthorized(address caller);
     error UnsupportedChain(uint256 chainId);
     error ValueUnchanged();
@@ -100,6 +102,7 @@ contract Pearl is CrossChainToken, OFTUpgradeable, UUPSUpgradeable {
         PearlStorage storage $ = _getPearlStorage();
         $.minter = msg.sender;
         $._votingEscrow = votingEscrow;
+        emit MinterUpdated(msg.sender);
     }
 
     /**
@@ -116,6 +119,7 @@ contract Pearl is CrossChainToken, OFTUpgradeable, UUPSUpgradeable {
             revert ValueUnchanged();
         }
         $.minter = _minter;
+        emit MinterUpdated(_minter);
     }
 
     /**
