@@ -40,8 +40,8 @@ contract PearlMigrator is NonblockingLzAppUpgradeable, UUPSUpgradeable {
 
     uint16 public immutable lzMainChainId;
 
-    event Migrate(address from, address to, uint256 amount);
-    event MigrateVE(address from, address to, uint256 tokenId);
+    event Migrate(address indexed from, address indexed to, uint256 amount);
+    event MigrateVE(address indexed from, address indexed to, uint256 tokenId);
 
     error NonPositiveLockedAmount(int128 amount);
     error LockExpired(uint256 expiry);
