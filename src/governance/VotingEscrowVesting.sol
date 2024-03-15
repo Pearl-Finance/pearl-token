@@ -44,6 +44,9 @@ contract VotingEscrowVesting is ReentrancyGuard, IERC6372 {
 
     IVotingEscrow public immutable votingEscrow;
 
+    event Deposit(address indexed depositor, uint256 indexed tokenId, uint256 endTime, uint256 amount);
+    event Withdraw(address indexed depositor, uint256 indexed tokenId, address indexed receiver, uint256 remainingTime);
+
     error InvalidZeroAddress();
     error NotAuthorized(address account);
     error VestingNotFinished();
@@ -110,6 +113,7 @@ contract VotingEscrowVesting is ReentrancyGuard, IERC6372 {
         uint256 endTime = startTime + duration;
         uint256 amount = votingEscrow.getLockedAmount(tokenId);
         _addTokenToDepositorEnumeration(msg.sender, tokenId);
+        emit Deposit(msg.sender, tokenId, endTime, amount);
         vestingSchedules[tokenId] = VestingSchedule(startTime, endTime, amount);
         votingEscrow.updateVestingDuration(tokenId, 0); // effectively remove voting power during vesting
         votingEscrow.transferFrom(msg.sender, address(this), tokenId);
@@ -145,6 +149,8 @@ contract VotingEscrowVesting is ReentrancyGuard, IERC6372 {
 
         _removeTokenFromDepositorEnumeration(msg.sender, tokenId);
 
+        emit Withdraw(msg.sender, tokenId, receiver, remainingTime);
+
         votingEscrow.transferFrom(address(this), receiver, tokenId);
         votingEscrow.updateVestingDuration(tokenId, remainingTime);
     }
@@ -173,6 +179,8 @@ contract VotingEscrowVesting is ReentrancyGuard, IERC6372 {
         }
 
         _removeTokenFromDepositorEnumeration(msg.sender, tokenId);
+
+        emit Withdraw(msg.sender, tokenId, receiver, 0);
 
         votingEscrow.burn(receiver, tokenId);
     }
