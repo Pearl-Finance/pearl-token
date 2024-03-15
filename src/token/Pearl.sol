@@ -150,20 +150,28 @@ contract Pearl is CrossChainToken, OFTUpgradeable, UUPSUpgradeable {
     }
 
     /**
-     * @notice Burns a specified amount of tokens from a given address.
-     * @dev Allows tokens to be burnt from the specified address. If the 'from' address is not the message sender, the
-     * function will attempt to spend the allowance of the sender for the 'from' address. This provides a mechanism to
-     * burn tokens on behalf of another address, given sufficient allowance. The function checks and updates the
-     * allowances accordingly before proceeding with the burn operation.
-     * @param from The address from which the tokens will be burnt. Can be the sender or another address with an
-     * allowance.
-     * @param amount The amount of tokens to burn. Must be less than or equal to the balance of the 'from' address.
+     * @dev Destroys a `value` amount of tokens from the caller.
+     *
+     * See {ERC20-_burn}.
      */
-    function burn(address from, uint256 amount) external {
-        if (from != msg.sender) {
-            _spendAllowance(from, msg.sender, amount);
-        }
-        _burn(from, amount);
+    function burn(uint256 value) external {
+        _burn(_msgSender(), value);
+    }
+
+    /**
+     * @dev Destroys a `value` amount of tokens from `account`, deducting from
+     * the caller's allowance.
+     *
+     * See {ERC20-_burn} and {ERC20-allowance}.
+     *
+     * Requirements:
+     *
+     * - the caller must have allowance for ``accounts``'s tokens of at least
+     * `value`.
+     */
+    function burnFrom(address account, uint256 value) external {
+        _spendAllowance(account, _msgSender(), value);
+        _burn(account, value);
     }
 
     /**
