@@ -422,13 +422,13 @@ contract VotingEscrow is
         uint256 lockedBalance = $._lockedBalance[tokenId];
         uint256 remainingBalance = lockedBalance;
         uint48 mintingTimestamp = clock();
+        uint256 newTokenId = _incrementAndGetTokenId();
         for (uint256 i = 1; i < shares.length;) {
             uint256 share = shares[i];
             uint256 _lockedBalance = share * lockedBalance / totalShares;
             if (lockedBalance == 0) {
                 revert ZeroLockBalance();
             }
-            uint256 newTokenId = _incrementAndGetTokenId();
             tokenIds[i] = newTokenId;
             $._mintingTimestamp[newTokenId] = mintingTimestamp;
             _mint(owner, newTokenId);
@@ -440,11 +440,15 @@ contract VotingEscrow is
                 remainingBalance -= _lockedBalance;
                 ++i;
             }
+            ++newTokenId;
         }
         if (remainingBalance == 0) {
             revert ZeroLockBalance();
         }
         _updateLock(tokenId, remainingBalance, remainingVestingDuration);
+        unchecked {
+            $._tokenId = newTokenId - 1;
+        }
     }
 
     /**
