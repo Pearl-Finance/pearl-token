@@ -64,6 +64,7 @@ contract PearlMigrator is NonblockingLzAppUpgradeable, UUPSUpgradeable {
     constructor(address lzEndpoint, address _legacyPearl, address _legacyVEPearl, uint16 _lzMainChainId)
         NonblockingLzAppUpgradeable(lzEndpoint)
     {
+        _disableInitializers();
         if (lzEndpoint == address(0) || _legacyPearl == address(0) || _legacyVEPearl == address(0)) {
             revert InvalidZeroAddress();
         }
