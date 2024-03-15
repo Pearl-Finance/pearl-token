@@ -46,6 +46,7 @@ contract VotingEscrowVesting is ReentrancyGuard, IERC6372 {
     event Deposit(address indexed depositor, uint256 indexed tokenId, uint256 endTime, uint256 amount);
     event Withdraw(address indexed depositor, uint256 indexed tokenId, address indexed receiver, uint256 remainingTime);
 
+    error ClockMisalignment();
     error InvalidZeroAddress();
     error NotAuthorized(address account);
     error VestingNotFinished();
@@ -54,6 +55,13 @@ contract VotingEscrowVesting is ReentrancyGuard, IERC6372 {
     constructor(address votingEscrow_) {
         if (votingEscrow_ == address(0)) {
             revert InvalidZeroAddress();
+        }
+        if (
+            IERC6372(votingEscrow_).clock() != clock()
+                || keccak256(abi.encodePacked(IERC6372(votingEscrow_).CLOCK_MODE()))
+                    != keccak256(abi.encodePacked(CLOCK_MODE()))
+        ) {
+            revert ClockMisalignment();
         }
         votingEscrow = IVotingEscrow(votingEscrow_);
     }
