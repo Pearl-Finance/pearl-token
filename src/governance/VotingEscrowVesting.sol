@@ -33,7 +33,6 @@ contract VotingEscrowVesting is ReentrancyGuard, IERC6372 {
     struct VestingSchedule {
         uint256 startTime;
         uint256 endTime;
-        uint256 amount;
     }
 
     mapping(address owner => uint256[]) private _depositedTokens;
@@ -114,7 +113,7 @@ contract VotingEscrowVesting is ReentrancyGuard, IERC6372 {
         uint256 amount = votingEscrow.getLockedAmount(tokenId);
         _addTokenToDepositorEnumeration(msg.sender, tokenId);
         emit Deposit(msg.sender, tokenId, endTime, amount);
-        vestingSchedules[tokenId] = VestingSchedule(startTime, endTime, amount);
+        vestingSchedules[tokenId] = VestingSchedule({startTime: startTime, endTime: endTime});
         votingEscrow.updateVestingDuration(tokenId, 0); // effectively remove voting power during vesting
         votingEscrow.transferFrom(msg.sender, address(this), tokenId);
     }
