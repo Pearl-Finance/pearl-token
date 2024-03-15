@@ -44,11 +44,15 @@ contract VotingEscrowVesting is ReentrancyGuard, IERC6372 {
 
     IVotingEscrow public immutable votingEscrow;
 
+    error InvalidZeroAddress();
     error NotAuthorized(address account);
     error VestingNotFinished();
     error OutOfBoundsIndex(address depositor, uint256 index);
 
     constructor(address votingEscrow_) {
+        if (votingEscrow_ == address(0)) {
+            revert InvalidZeroAddress();
+        }
         votingEscrow = IVotingEscrow(votingEscrow_);
     }
 
