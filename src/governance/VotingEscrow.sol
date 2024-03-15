@@ -333,6 +333,8 @@ contract VotingEscrow is
      * @custom:error VestingNotFinished Indicates that the vesting duration for the token is still ongoing.
      */
     function burn(address receiver, uint256 tokenId) external {
+        address owner = _requireOwned(tokenId);
+        _checkAuthorized(owner, msg.sender, tokenId);
         VotingEscrowStorage storage $ = _getVotingEscrowStorage();
         if ($._remainingVestingDuration[tokenId] != 0) {
             revert VestingNotFinished();
