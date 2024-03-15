@@ -315,8 +315,8 @@ contract VotingEscrow is
                 revert InvalidVestingDuration(vestingDuration, MIN_VESTING_DURATION, MAX_VESTING_DURATION);
             }
         }
-        tokenId = _incrementAndGetTokenId();
         VotingEscrowStorage storage $ = _getVotingEscrowStorage();
+        tokenId = _incrementAndGetTokenId($);
         $._mintingTimestamp[tokenId] = clock();
         _mint(receiver, tokenId);
         _updateLock(tokenId, lockedBalance, vestingDuration);
@@ -422,7 +422,7 @@ contract VotingEscrow is
         uint256 lockedBalance = $._lockedBalance[tokenId];
         uint256 remainingBalance = lockedBalance;
         uint48 mintingTimestamp = clock();
-        uint256 newTokenId = _incrementAndGetTokenId();
+        uint256 newTokenId = _incrementAndGetTokenId($);
         for (uint256 i = 1; i < shares.length;) {
             uint256 share = shares[i];
             uint256 _lockedBalance = share * lockedBalance / totalShares;
@@ -580,7 +580,7 @@ contract VotingEscrow is
         VotingEscrowStorage storage $ = _getVotingEscrowStorage();
         address previousOwner = super._update(to, tokenId, auth);
 
-        _setDefaultDelegate(to);
+        _setDefaultDelegate($, to);
         _transferVotingUnits(previousOwner, to, $._votingPowerCheckpoints[tokenId].latest());
 
         return previousOwner;
@@ -611,9 +611,9 @@ contract VotingEscrow is
      * message sender is the zero address.
      * @param account The address of the account for which the default delegate is being set.
      */
-    function _setDefaultDelegate(address account) internal virtual {
+    function _setDefaultDelegate(VotingEscrowStorage storage $, address account) internal virtual {
         if (msg.sender == address(0)) return;
-        if (_getVotingEscrowStorage()._defaultDelegateSet[account]) return;
+        if ($._defaultDelegateSet[account]) return;
         _delegate(account, account);
     }
 
@@ -634,10 +634,10 @@ contract VotingEscrow is
      * @notice Internal function to increment and retrieve the next tokenId.
      * @dev Increments the internal tokenId counter and returns the new tokenId. This function is used to generate
      * unique identifiers for new tokens being minted.
+     * @param $ The storage structure of the VotingEscrow contract.
      * @return tokenId The next available unique identifier for a new token.
      */
-    function _incrementAndGetTokenId() internal returns (uint256 tokenId) {
-        VotingEscrowStorage storage $ = _getVotingEscrowStorage();
+    function _incrementAndGetTokenId(VotingEscrowStorage storage $) internal returns (uint256 tokenId) {
         $._tokenId = (tokenId = $._tokenId + 1);
     }
 }
