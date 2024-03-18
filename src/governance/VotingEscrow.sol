@@ -274,6 +274,22 @@ contract VotingEscrow is
     }
 
     /**
+     * @notice Sets or updates the address of the vesting contract.
+     * @dev Allows the contract owner to change the address of the vesting contract. The vesting contract is used for
+     * managing the lock and vesting of tokens. Reverts if the new vesting address is the zero address, ensuring a valid
+     * configuration.
+     * @param _vestingContract The new address of the vesting contract.
+     * @custom:error InvalidZeroAddress Indicates an attempt to set the vesting contract to the zero address.
+     */
+    function setVestingContract(address _vestingContract) external onlyOwner {
+        if (_vestingContract == address(0)) {
+            revert InvalidZeroAddress();
+        }
+        VotingEscrowStorage storage $ = _getVotingEscrowStorage();
+        $.vestingContract = _vestingContract;
+    }
+
+    /**
      * @notice Sets or updates the address of the voter contract.
      * @dev Allows the contract owner to change the address of the voter contract interface (IVoter). The voter contract
      * is used for integrating voting mechanisms within the VotingEscrow system. Reverts if the new voter address is the

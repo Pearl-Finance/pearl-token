@@ -289,6 +289,11 @@ abstract contract DeployAllBase is PearlDeploymentScript {
             console.log("vePearl art proxy set to %s", artProxyAddress);
         }
 
+        if (vePearl.vestingContract() != vestingAddress) {
+            vePearl.setVestingContract(vestingAddress);
+            console.log("vePearl vesting contract set to %s", vestingAddress);
+        }
+
         if (vePearl.voter() != voterAddress) {
             vePearl.setVoter(voterAddress);
             console.log("vePearl voter set to %s", voterAddress);
