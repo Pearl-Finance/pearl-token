@@ -42,7 +42,6 @@ library StringUtils {
         bytes memory dayPart = quantify(_days, "day");
         bytes memory hourPart = quantify(_hours, "hour");
         bytes memory minutePart = quantify(_minutes, "minute");
-        bytes memory secondPart = quantify(_seconds, "second");
 
         if (dayPart.length != 0) {
             return string(hourPart.length != 0 ? abi.encodePacked(dayPart, ", ", hourPart) : dayPart);
@@ -50,8 +49,8 @@ library StringUtils {
             return string(minutePart.length != 0 ? abi.encodePacked(hourPart, ", ", minutePart) : hourPart);
         } else if (minutePart.length != 0) {
             return string(minutePart);
-        } else if (secondPart.length != 0) {
-            return string(secondPart);
+        } else if (_seconds != 0) {
+            return "< 1 minute";
         }
 
         return _default;
