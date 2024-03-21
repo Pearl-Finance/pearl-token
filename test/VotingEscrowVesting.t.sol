@@ -11,7 +11,7 @@ import "../src/governance/VotingEscrowVesting.sol";
 
 import "./mocks/MockVoter.sol";
 
-contract VotingEscrowTest is Test {
+contract VotingEscrowVestingTest is Test {
     Pearl pearl;
     VotingEscrow vePearl;
     VotingEscrowVesting vesting;
@@ -23,17 +23,21 @@ contract VotingEscrowTest is Test {
     function setUp() public {
         voter = new MockVoter();
 
-        address votingEscrowProxyAddress = vm.computeCreateAddress(address(this), vm.getNonce(address(this)) + 4);
+        address votingEscrowProxyAddress = vm.computeCreateAddress(address(this), vm.getNonce(address(this)) + 3);
+        address vestingAddress = vm.computeCreateAddress(address(this), vm.getNonce(address(this)) + 4);
 
-        Pearl pearlImpl = new Pearl(block.chainid, address(0));
+        Pearl pearlImpl = new Pearl(block.chainid, address(1));
         bytes memory init = abi.encodeCall(pearlImpl.initialize, (votingEscrowProxyAddress));
         ERC1967Proxy pearlProxy = new ERC1967Proxy(address(pearlImpl), init);
 
-        vesting = new VotingEscrowVesting(votingEscrowProxyAddress);
-
         VotingEscrow votingEscrowImpl = new VotingEscrow(address(pearlProxy));
-        init = abi.encodeCall(votingEscrowImpl.initialize, (address(vesting), address(voter), address(0)));
+        init = abi.encodeCall(votingEscrowImpl.initialize, (vestingAddress, address(voter), address(1)));
         ERC1967Proxy votingEscrowProxy = new ERC1967Proxy(address(votingEscrowImpl), init);
+
+        console.log("VE: %s / %s", votingEscrowProxyAddress, address(votingEscrowProxy));
+        console.log("ves: %s", vestingAddress);
+
+        vesting = new VotingEscrowVesting(address(votingEscrowProxy));
 
         pearl = Pearl(address(pearlProxy));
         vePearl = VotingEscrow(address(votingEscrowProxy));

@@ -237,10 +237,19 @@ contract VotingEscrowVesting is ReentrancyGuard, IERC6372 {
     function _removeTokenFromDepositorEnumeration(address from, uint256 tokenId) private {
         uint256[] storage tokens = _depositedTokens[from];
 
-        uint256 lastTokenIndex = tokens.length - 1;
+        uint256 lastTokenIndex = tokens.length;
+
+        if (lastTokenIndex == 0) {
+            revert NotAuthorized(from);
+        }
+
+        unchecked {
+            --lastTokenIndex;
+        }
+
         uint256 tokenIndex = _depositedTokensIndex[tokenId];
 
-        if (tokens[tokenIndex] != tokenId) {
+        if (tokenIndex > lastTokenIndex || tokens[tokenIndex] != tokenId) {
             revert NotAuthorized(from);
         }
 
