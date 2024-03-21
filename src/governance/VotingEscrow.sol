@@ -84,6 +84,7 @@ contract VotingEscrow is
         }
     }
 
+    error InsufficientVestingDuration(uint256 duration);
     error InvalidSharesLength(uint256 length);
     error InvalidVestingDuration(uint256 duration, uint256 min, uint256 max);
     error InvalidZeroAddress();
@@ -363,15 +364,20 @@ contract VotingEscrow is
 
     /**
      * @notice Deposits additional tokens to extend the lock for a specific tokenId.
-     * @dev Allows additional tokens to be locked, increasing the voting power of the specified tokenId. The function
-     * updates the locked balance and maintains the same vesting duration. This is useful for increasing the locked
-     * amount without altering the vesting period. Transfers the additional tokens from the sender to the contract.
+     * @dev Allows additional tokens to be locked, increasing the voting power of the specified tokenId. Updates the
+     * locked balance and maintains the same vesting duration. Transfers the additional tokens from the sender to the
+     * contract. Reverts if the remaining vesting duration is less than the minimum required vesting duration,
+     * indicating that deposits cannot be made.
      * @param tokenId The unique identifier of the NFT representing the locked tokens.
      * @param amount The amount of additional tokens to be locked.
      */
     function depositFor(uint256 tokenId, uint256 amount) external {
         VotingEscrowStorage storage $ = _getVotingEscrowStorage();
-        _updateLock(tokenId, $._lockedBalance[tokenId] + amount, $._remainingVestingDuration[tokenId]);
+        uint256 remainingVestingDuration = $._remainingVestingDuration[tokenId];
+        if (remainingVestingDuration < MIN_VESTING_DURATION) {
+            revert InsufficientVestingDuration(remainingVestingDuration);
+        }
+        _updateLock(tokenId, $._lockedBalance[tokenId] + amount, remainingVestingDuration);
         lockedToken.safeTransferFrom(msg.sender, address(this), amount);
     }
 
