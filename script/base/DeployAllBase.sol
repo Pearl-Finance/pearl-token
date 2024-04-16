@@ -388,7 +388,7 @@ abstract contract DeployAllBase is PearlDeploymentScript {
         if (chain == keccak256("polygon")) {
             return 109;
         } else if (chain == keccak256("real")) {
-            revert("Unsupported chain");
+            return 237;
         } else if (chain == keccak256("arbitrum_one")) {
             return 110;
         } else if (chain == keccak256("polygon_mumbai")) {
@@ -432,7 +432,7 @@ abstract contract DeployAllBase is PearlDeploymentScript {
         if (chainId == getChain("polygon").chainId) {
             lzEndpoint = 0x3c2269811836af69497E5F486A85D7316753cf62;
         } else if (chainId == getChain("real").chainId) {
-            revert("No LayerZero endpoint defined for this chain.");
+            lzEndpoint = 0xb6319cC6c8c27A8F5dAF0dD3DF91EA35C4720dd7;
         } else if (chainId == getChain("arbitrum_one").chainId) {
             lzEndpoint = 0x3c2269811836af69497E5F486A85D7316753cf62;
         } else if (chainId == getChain("polygon_mumbai").chainId) {

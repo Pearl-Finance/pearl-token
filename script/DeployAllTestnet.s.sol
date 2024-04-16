@@ -18,7 +18,7 @@ contract DeployAllTestnet is DeployAllBase {
     }
 
     function _getVoterAddress() internal pure override returns (address) {
-        return 0x11F992E9e4f23003D98AaBaDCF409B3619013dFE;
+        return 0x5e59A09Ca7e109b76B968cdb830a233Ee2b54962;
     }
 
     function _getMainChainAlias() internal pure override returns (string memory) {

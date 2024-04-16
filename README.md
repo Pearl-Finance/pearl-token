@@ -42,12 +42,12 @@ The Pearl Token Project is a Solidity-based smart contract suite designed for th
    ```
 6. Verify contracts. For example:
    ```
-   FOUNDRY_PROFILE=optimized forge verify-contract 0xaBA5FF73Bec90ef637e3A75a205A7A084A651097 \
+   forge verify-contract 0xaBA5FF73Bec90ef637e3A75a205A7A084A651097 \
      --chain-id 18231 \
      --verifier blockscout \
      --verifier-url "https://unreal.blockscout.com/api" \
      --watch src/token/Pearl.sol:Pearl
-   FOUNDRY_PROFILE=optimized forge verify-contract 0xa15d9b6cCA037B0d3BA7f76d9C38c13D6485F025 \
+   forge verify-contract 0xa15d9b6cCA037B0d3BA7f76d9C38c13D6485F025 \
      --chain-id 5 \
      --verifier etherscan \
      --etherscan-api-key "<etherscan-key>" \
@@ -62,19 +62,24 @@ The Pearl Token Project is a Solidity-based smart contract suite designed for th
 
 ### Mumbai
 ```
-Pearl Migrator: 0x14cd7fACf3a215149377896FE58DaD019d72E002
+Pearl Migrator: 0xA83D5244799Fd332557Ef63DC9E53B86A6AEdCD1
 ```
 
 ### Unreal
 ```
-Pearl:           0x1ef116600bBb2e99Ce6CE96B7E66A0df71AF5980
-vePearl:         0xee60171b3A81EE2DF0caf0aAd894772B6Acaa772
-vePearl Vesting: 0xA1Bc24d9043C364bF9BAc192ef9a46B8d8f24dCD
+Pearl:           0xCE1581d7b4bA40176f0e219b2CaC30088Ad50C7A
+vePearl:         0x99E35808207986593531D3D54D898978dB4E5B04
+vePearl Vesting: 0xC06b2cE291aaA69C6FC0be8a2B33868aAF7a1950
 ```
 
-### Goerli
+### Sepolia
 ```
-Pearl: 0x1ef116600bBb2e99Ce6CE96B7E66A0df71AF5980
+Pearl: 0xCE1581d7b4bA40176f0e219b2CaC30088Ad50C7A
+```
+
+### Arbitrum Sepolia
+```
+Pearl: 0xCE1581d7b4bA40176f0e219b2CaC30088Ad50C7A
 ```
 
 ## License
