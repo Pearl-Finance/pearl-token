@@ -12,15 +12,18 @@ The Pearl Token Project is a Solidity-based smart contract suite designed for th
   - `Pearl.sol`: ERC20 token contract with extended features for the Pearl token.
 - **Governance Contracts (`src/governance/`):**
   - `VotingEscrow.sol`, `VotingEscrowVesting.sol`: Manage the governance system, including the vesting mechanism for vePEARL.
+  - `VotingMath.sol`: Provides mathematical functions for voting calculations.
 
 ### Interfaces and Utilities (`src/interfaces/`, `src/utils/`)
-- Define interactions between contracts and provide utility functionalities.
+- **Interfaces (`src/interfaces/`):**
+  - `ILegacyVotingEscrow.sol`: Defines the interface for interacting with legacy voting escrow mechanisms.
+  - `IVoter.sol`: Interface for voter functionalities.
+  - `IVotingEscrow.sol`: Interface for the voting escrow functionalities.
+- **Utilities (`src/utils/`):**
+  - `StringUtils.sol`: Provides utility functions for string manipulations.
 
 ### User Interface (`src/ui/`)
 - `VotingEscrowArtProxy.sol`: Related to UI components for governance.
-
-### Governance (`src/governance/`)
-- Contracts for implementing the voting and governance mechanisms of the Pearl ecosystem.
 
 ## Deployment and Scripts (`script/`)
 - `DeployAll.s.sol`: Main deployment script for the contracts, including specific addresses and network aliases.
