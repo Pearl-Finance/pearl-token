@@ -35,4 +35,9 @@ contract DeployAllTestnet is DeployAllBase {
         aliases[1] = "sepolia";
         aliases[2] = "arbitrum_one_sepolia";
     }
+
+    /**
+     * @notice Dummy function to exclude script files from coverage reports.
+     */
+    function test() public virtual override {}
 }

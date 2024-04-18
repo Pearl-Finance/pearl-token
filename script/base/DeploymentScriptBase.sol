@@ -208,4 +208,9 @@ abstract contract DeploymentScriptBase is Script {
             if iszero(iszero(cs)) { isDeployed := true }
         }
     }
+
+    /**
+     * @notice Dummy function to exclude script files from coverage reports.
+     */
+    function test() public virtual {}
 }

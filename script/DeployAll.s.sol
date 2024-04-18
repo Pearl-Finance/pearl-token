@@ -33,4 +33,9 @@ contract DeployAll is DeployAllBase {
         aliases = new string[](1);
         aliases[0] = "real";
     }
+
+    /**
+     * @notice Dummy function to exclude script files from coverage reports.
+     */
+    function test() public virtual override {}
 }

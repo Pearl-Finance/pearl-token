@@ -448,7 +448,7 @@ contract VotingEscrow is
         for (uint256 i = 1; i < shares.length;) {
             uint256 share = shares[i];
             uint256 _lockedBalance = share * lockedBalance / totalShares;
-            if (lockedBalance == 0) {
+            if (_lockedBalance == 0) {
                 revert ZeroLockBalance();
             }
             tokenIds[i] = newTokenId;

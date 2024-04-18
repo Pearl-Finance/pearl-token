@@ -449,4 +449,9 @@ abstract contract DeployAllBase is PearlDeploymentScript {
             revert("No LayerZero endpoint defined for this chain.");
         }
     }
+
+    /**
+     * @notice Dummy function to exclude script files from coverage reports.
+     */
+    function test() public virtual override {}
 }

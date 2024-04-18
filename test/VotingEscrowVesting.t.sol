@@ -3,13 +3,22 @@ pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
 
+import "@openzeppelin/contracts/interfaces/IERC6372.sol";
 import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 import "../src/token/Pearl.sol";
 import "../src/governance/VotingEscrow.sol";
 import "../src/governance/VotingEscrowVesting.sol";
 
-import "./mocks/MockVoter.sol";
+contract MisalignedVE is IERC6372 {
+    function clock() public view virtual override returns (uint48) {
+        return uint48(block.number);
+    }
+
+    function CLOCK_MODE() public pure virtual override returns (string memory) {
+        return "mode=blocknumber&from=default";
+    }
+}
 
 contract VotingEscrowVestingTest is Test {
     Pearl pearl;
@@ -21,7 +30,10 @@ contract VotingEscrowVestingTest is Test {
     address bob = makeAddr("bob");
 
     function setUp() public {
-        voter = new MockVoter();
+        address voterAddress = makeAddr("voter");
+        voter = IVoter(voterAddress);
+
+        vm.mockCall(voterAddress, abi.encodeWithSelector(IVoter.poke.selector), "");
 
         address votingEscrowProxyAddress = vm.computeCreateAddress(address(this), vm.getNonce(address(this)) + 3);
         address vestingAddress = vm.computeCreateAddress(address(this), vm.getNonce(address(this)) + 4);
@@ -43,6 +55,16 @@ contract VotingEscrowVestingTest is Test {
         vePearl = VotingEscrow(address(votingEscrowProxy));
 
         pearl.mint(address(this), 100e18);
+    }
+
+    function test_init() public {
+        vm.expectRevert(VotingEscrowVesting.InvalidZeroAddress.selector);
+        new VotingEscrowVesting(address(0));
+
+        IERC6372 misalignedVE = new MisalignedVE();
+
+        vm.expectRevert(VotingEscrowVesting.ClockMisalignment.selector);
+        new VotingEscrowVesting(address(misalignedVE));
     }
 
     function test_initials() public {
@@ -137,12 +159,18 @@ contract VotingEscrowVestingTest is Test {
     }
 
     function test_vesting() public {
-        pearl.approve(address(vePearl), 1e18);
+        pearl.approve(address(vePearl), 2e18);
 
-        uint256 tokenId = vePearl.mint(address(this), 1e18, 2 * 52 weeks);
+        uint256 tokenId1 = vePearl.mint(address(this), 1e18, 2 * 52 weeks);
+        uint256 tokenId2 = vePearl.mint(bob, 1e18, 2 * 52 weeks);
 
-        vePearl.approve(address(vesting), tokenId);
-        vesting.deposit(tokenId);
+        vePearl.approve(address(vesting), tokenId1);
+        vesting.deposit(tokenId1);
+
+        vm.startPrank(bob);
+        vePearl.approve(address(vesting), tokenId2);
+        vesting.deposit(tokenId2);
+        vm.stopPrank();
 
         assertEq(vePearl.getVotes(address(this)), 0);
         assertEq(vePearl.getVotes(address(vesting)), 0);
@@ -150,24 +178,28 @@ contract VotingEscrowVestingTest is Test {
         vm.warp(block.timestamp + 52 weeks);
 
         vm.expectRevert(abi.encodeWithSelector(VotingEscrowVesting.VestingNotFinished.selector));
-        vesting.claim(address(this), tokenId);
+        vesting.claim(address(this), tokenId1);
 
-        vesting.withdraw(address(this), tokenId);
+        vesting.withdraw(address(this), tokenId1);
 
         assertEq(vePearl.getVotes(address(this)), 0.5e18);
-        assertEq(vePearl.getLockedAmount(tokenId), 1e18);
+        assertEq(vePearl.getLockedAmount(tokenId1), 1e18);
 
-        vePearl.approve(address(vesting), tokenId);
-        vesting.deposit(tokenId);
+        vePearl.approve(address(vesting), tokenId1);
+        vesting.deposit(tokenId1);
 
         vm.warp(block.timestamp + 52 weeks);
 
         vm.prank(alice);
         vm.expectRevert(abi.encodeWithSelector(VotingEscrowVesting.NotAuthorized.selector, alice));
-        vesting.claim(address(this), tokenId);
+        vesting.claim(address(this), tokenId1);
 
-        vesting.claim(address(this), tokenId);
-        assertEq(pearl.balanceOf(address(this)), 100e18);
+        vm.prank(bob);
+        vm.expectRevert(abi.encodeWithSelector(VotingEscrowVesting.NotAuthorized.selector, bob));
+        vesting.claim(address(this), tokenId1);
+
+        vesting.claim(address(this), tokenId1);
+        assertEq(pearl.balanceOf(address(this)), 99e18);
     }
 
     function test_withdraw() public {
@@ -180,6 +212,21 @@ contract VotingEscrowVestingTest is Test {
 
         vm.prank(alice);
         vm.expectRevert(abi.encodeWithSelector(VotingEscrowVesting.NotAuthorized.selector, alice));
+        vesting.withdraw(address(this), tokenId);
+
+        vm.expectCall(address(vePearl), abi.encodeCall(vePearl.updateVestingDuration, (tokenId, 2 * 52 weeks)));
+        vesting.withdraw(address(this), tokenId);
+
+        vePearl.approve(address(vesting), tokenId);
+        vesting.deposit(tokenId);
+
+        skip(2 * 52 weeks);
+
+        vm.mockCallRevert(
+            address(vePearl),
+            abi.encodeWithSelector(VotingEscrow.updateVestingDuration.selector),
+            "SHOULD_NOT_BE_CALLED"
+        );
         vesting.withdraw(address(this), tokenId);
     }
 }

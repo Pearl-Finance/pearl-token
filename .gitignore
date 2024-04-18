@@ -5,5 +5,7 @@ out/
 .env
 
 lcov.info
+report/
+generate-coverage-report.sh
 
 NOTES.md
