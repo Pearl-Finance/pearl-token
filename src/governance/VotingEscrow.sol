@@ -88,7 +88,6 @@ contract VotingEscrow is
     error InvalidSharesLength(uint256 length);
     error InvalidVestingDuration(uint256 duration, uint256 min, uint256 max);
     error InvalidZeroAddress();
-    error NotAuthorized(address account);
     error SelfMerge();
     error VestingNotFinished();
     error ZeroLockBalance();
